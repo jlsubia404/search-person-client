@@ -1,0 +1,24 @@
+{
+    "documentId": "1234567890",
+    "name": "SACARIAS PIEDRAS DEL RIO",
+    "contactInfo": [
+        {
+            "kind": "MOVIL_PHONE",
+            "values": [
+                {
+                    "value": "123456789",
+                    "enable": true
+                }
+            ]
+        },
+        {
+            "kind": "EMAIL",
+            "values": [
+                {
+                    "value": "minombre@dominio.com",
+                    "enable": true
+                }
+            ]
+        }
+    ]
+}
