@@ -11,6 +11,8 @@ public class Person {
 	
 	private String name;
 
+	private String homeAddress;
+	
 	private List<ContactInfo> contactInfo;
 	
 	public String getDocumentId() {
@@ -35,6 +37,14 @@ public class Person {
 
 	public void setContactInfo(List<ContactInfo> contactInfo) {
 		this.contactInfo = contactInfo;
+	}
+
+	public String getHomeAddress() {
+		return homeAddress;
+	}
+
+	public void setHomeAddress(String homeAddress) {
+		this.homeAddress = homeAddress;
 	}
 	
 }

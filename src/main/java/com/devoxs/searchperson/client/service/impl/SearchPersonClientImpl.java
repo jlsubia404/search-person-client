@@ -55,9 +55,10 @@ public class SearchPersonClientImpl implements SearchPersonClient {
 		LOG.info("Dato a consulta externo {}", documentId);
 
 		Person respuesta = null;
-		try {
+		HttpPost post = null;
+		try{
 
-			HttpPost post = new HttpPost(clientConfig.getUrlApi());
+			post = new HttpPost(clientConfig.getUrlApi());
 
 			post.setEntity(new StringEntity((new ObjectMapper()).writeValueAsString(new ClientRequest(documentId, clientConfig.getApiVersion())),
 					ContentType.APPLICATION_JSON));
@@ -76,8 +77,8 @@ public class SearchPersonClientImpl implements SearchPersonClient {
 			}
 
 			CloseableHttpResponse response = httpClient.execute(post);
-
-			if (200 == response.getStatusLine().getStatusCode()) {
+			LOG.info("Codigo de respuesta {}", response.getStatusLine().getStatusCode());
+			if (201 == response.getStatusLine().getStatusCode()) {
 
 				String respuestaStr = EntityUtils.toString(response.getEntity());
 				if (LOG.isInfoEnabled()) {
@@ -93,7 +94,12 @@ public class SearchPersonClientImpl implements SearchPersonClient {
 			LOG.error("Error de io consulta externo ", e);
 		} catch (Exception e) {
 			LOG.error("Error general consulta externo ", e);
+		}finally {
+			if(post != null) {				
+				post.releaseConnection();
+			}
 		}
+		
 		return respuesta;
 	}
 
