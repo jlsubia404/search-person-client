@@ -18,6 +18,12 @@ public class ClientConfig {
 	@Value("${search.api.apiVersion}")
 	private Integer apiVersion;
 	
+	@Value("${search.api.timeout}")
+	private Integer timeoutSeconds;
+	
+	@Value("${search.api.url.ent}")
+	private String urlApiEnterprise;
+
 	public String getUrlApi() {
 		return urlApi;
 	}
@@ -48,6 +54,22 @@ public class ClientConfig {
 
 	public void setApiVersion(Integer apiVersion) {
 		this.apiVersion = apiVersion;
+	}
+
+	public Integer getTimeoutSeconds() {
+		return timeoutSeconds;
+	}
+
+	public void setTimeoutSeconds(Integer timeoutSeconds) {
+		this.timeoutSeconds = timeoutSeconds;
+	}
+
+	public String getUrlApiEnterprise() {
+		return urlApiEnterprise;
+	}
+
+	public void setUrlApiEnterprise(String urlApiEnterprise) {
+		this.urlApiEnterprise = urlApiEnterprise;
 	}
 
 }

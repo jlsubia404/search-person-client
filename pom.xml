@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.devoxs.searchperson.client</groupId>
 	<artifactId>search-person-client</artifactId>
-	<version>0.0.2</version>
+	<version>1.0.0</version>
 	<name>search-person-client</name>
 	<description>Client for call the search person API</description>
 	<packaging>jar</packaging>

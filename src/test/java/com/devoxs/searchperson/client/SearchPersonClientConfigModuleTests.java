@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.devoxs.searchperson.client.domain.Enterprise;
 import com.devoxs.searchperson.client.domain.Person;
 import com.devoxs.searchperson.client.service.SearchPersonClient;
 @RunWith(SpringRunner.class)
@@ -24,6 +25,14 @@ class SearchPersonClientConfigModuleTests {
 	void testPersonClient() {
 		
 		 Person result = searchPersonClient.findPerson("1234567890");
+		 assertThat(result).isNotNull();
+	}
+	
+	
+	@Test
+	void testEnterpriseClient() {
+		
+		 Enterprise result = searchPersonClient.finEnterprise("1234567890001");
 		 assertThat(result).isNotNull();
 	}
 	

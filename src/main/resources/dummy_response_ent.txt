@@ -1,0 +1,7 @@
+{
+    "documentId": "123456789001",
+    "name": "SACARIAS PIEDRAS DEL RIO",
+    "businessName": "CORPORACION ACME",
+    "taxPayerKind": "PERSONAS NATURALES",
+    "carryingAccount": false
+}

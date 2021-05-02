@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.UnsupportedCharsetException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -30,9 +31,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.devoxs.searchperson.client.common.ClientConfig;
+import com.devoxs.searchperson.client.common.Constants;
 import com.devoxs.searchperson.client.domain.ClientRequest;
+import com.devoxs.searchperson.client.domain.Enterprise;
 import com.devoxs.searchperson.client.domain.Person;
 import com.devoxs.searchperson.client.service.SearchPersonClient;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
@@ -52,33 +56,21 @@ public class SearchPersonClientImpl implements SearchPersonClient {
 
 	@Override
 	public Person findPerson(String documentId) {
-		LOG.info("Dato a consulta externo {}", documentId);
+		LOG.info("Dato a consulta externo findPerson {}", documentId);
 
 		Person respuesta = null;
 		HttpPost post = null;
 		try{
 
-			post = new HttpPost(clientConfig.getUrlApi());
-
-			post.setEntity(new StringEntity((new ObjectMapper()).writeValueAsString(new ClientRequest(documentId, clientConfig.getApiVersion())),
-					ContentType.APPLICATION_JSON));
-
-			post.setHeader("X-DVXS-KEY", clientConfig.getAccessKey());
-
-			RequestConfig.Builder requestConfig = RequestConfig.custom();
-
-			requestConfig.setConnectTimeout(30 * 1000).setConnectionRequestTimeout(30 * 1000)
-					.setSocketTimeout(30 * 1000);
-
-			post.setConfig(requestConfig.build());
+			post = buildPostRequest(documentId, true);
 
 			if (Boolean.TRUE.equals(clientConfig.getUseDummy())) {
-				return getDummyData();
+				return (Person) getDummyData(true);
 			}
 
 			CloseableHttpResponse response = httpClient.execute(post);
 			LOG.info("Codigo de respuesta {}", response.getStatusLine().getStatusCode());
-			if (201 == response.getStatusLine().getStatusCode()) {
+			if (Constants.RESPONSE_CODE_OK == response.getStatusLine().getStatusCode()) {
 
 				String respuestaStr = EntityUtils.toString(response.getEntity());
 				if (LOG.isInfoEnabled()) {
@@ -103,8 +95,50 @@ public class SearchPersonClientImpl implements SearchPersonClient {
 		return respuesta;
 	}
 
-	private Person getDummyData() {
-		URL resource = getClass().getClassLoader().getResource("dummy_response.txt");
+	@Override
+	public Enterprise finEnterprise(String documentId) {
+		LOG.info("Dato a consulta externo finEnterprise {}", documentId);
+		Enterprise respuesta = null;
+		HttpPost post = null;
+		try{
+
+			post = buildPostRequest(documentId, false);
+
+			if (Boolean.TRUE.equals(clientConfig.getUseDummy())) {
+				return (Enterprise) getDummyData(false);
+			}
+
+			CloseableHttpResponse response = httpClient.execute(post);
+			LOG.info("Codigo de respuesta {}", response.getStatusLine().getStatusCode());
+			if (Constants.RESPONSE_CODE_OK == response.getStatusLine().getStatusCode()) {
+
+				String respuestaStr = EntityUtils.toString(response.getEntity());
+				if (LOG.isInfoEnabled()) {
+
+					LOG.info("Response: {}", respuestaStr);
+				}
+
+				respuesta = (new ObjectMapper()).readValue(respuestaStr, Enterprise.class);
+
+			}
+
+		} catch (IOException e) {
+			LOG.error("Error de io consulta externo ", e);
+		} catch (Exception e) {
+			LOG.error("Error general consulta externo ", e);
+		}finally {
+			if(post != null) {				
+				post.releaseConnection();
+			}
+		}
+		
+		return respuesta;
+
+	}
+	
+	private Object getDummyData(boolean isPerson) {
+		String resourceName = isPerson? "dummy_response.txt": "dummy_response_ent.txt";
+		URL resource = getClass().getClassLoader().getResource(resourceName);
 		File dummyResponse;
 		Scanner myReader = null;
 		try {
@@ -116,8 +150,12 @@ public class SearchPersonClientImpl implements SearchPersonClient {
 				String data = myReader.nextLine();
 				strBUild.append(data.replace("\n", ""));
 			}
-
-			return (new ObjectMapper()).readValue(strBUild.toString(), Person.class);
+			if(isPerson) {
+				
+				return (new ObjectMapper()).readValue(strBUild.toString(), Person.class);
+			} else {
+				return (new ObjectMapper()).readValue(strBUild.toString(), Enterprise.class);
+			}
 
 		} catch (URISyntaxException | IOException e) {
 			e.printStackTrace();
@@ -149,6 +187,28 @@ public class SearchPersonClientImpl implements SearchPersonClient {
 		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
 			LOG.error("Error al configurar cliente de search person,", e);
 		}
+	}
+
+
+	private HttpPost buildPostRequest(String documentId, boolean isPerson) throws UnsupportedCharsetException, JsonProcessingException {
+		HttpPost post = null;
+		post = new HttpPost(isPerson ? clientConfig.getUrlApi() : clientConfig.getUrlApiEnterprise());
+
+		post.setEntity(new StringEntity((new ObjectMapper()).writeValueAsString(new ClientRequest(documentId, clientConfig.getApiVersion())),
+				ContentType.APPLICATION_JSON));
+
+		post.setHeader(Constants.DEVOXS_KEY_HEADER, clientConfig.getAccessKey());
+
+		RequestConfig.Builder requestConfig = RequestConfig.custom();
+
+		Integer timoeutMillis = clientConfig.getTimeoutSeconds() * 1000;
+		
+		requestConfig.setConnectTimeout(timoeutMillis).setConnectionRequestTimeout(timoeutMillis)
+				.setSocketTimeout(timoeutMillis);
+
+		post.setConfig(requestConfig.build());
+
+		return post;
 	}
 
 }
